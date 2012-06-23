@@ -29,9 +29,10 @@ public class ErrorHandler {
              * FIXME: Don't throw exceptions for VIR_ERR_WARNING
              * level errors
              */
-            if (error.getLevel() == Error.ErrorLevel.VIR_ERR_ERROR) {
+            /*if (error.getLevel() == Error.ErrorLevel.VIR_ERR_ERROR) {
                 throw new LibvirtException(error);
-            }
+                }*/
+            System.out.println("I would be throwing " + vError.message);
         }
     }
 }
