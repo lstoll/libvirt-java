@@ -48,7 +48,7 @@ public class Device {
         int success = 0;
         if (VDP != null) {
             success = libvirt.virNodeDeviceDestroy(VDP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VDP = null;
         }
 
@@ -63,7 +63,7 @@ public class Device {
      */
     public int detach() throws LibvirtException {
         int num = libvirt.virNodeDeviceDettach(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, num);
         return num;
     }
 
@@ -83,7 +83,7 @@ public class Device {
         int success = 0;
         if (VDP != null) {
             success = libvirt.virNodeDeviceFree(VDP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VDP = null;
         }
 
@@ -97,7 +97,7 @@ public class Device {
      */
     public String getName() throws LibvirtException {
         String name = libvirt.virNodeDeviceGetName(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, name);
         return name;
     }
 
@@ -108,7 +108,7 @@ public class Device {
      */
     public int getNumberOfCapabilities() throws LibvirtException {
         int num = libvirt.virNodeDeviceNumOfCaps(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, num);
         return num;
     }
 
@@ -119,7 +119,7 @@ public class Device {
      */
     public String getParent() throws LibvirtException {
         String parent = libvirt.virNodeDeviceGetParent(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, parent);
         return parent;
     }
 
@@ -130,7 +130,7 @@ public class Device {
      */
     public String getXMLDescription() throws LibvirtException {
         String desc = libvirt.virNodeDeviceGetXMLDesc(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, desc);
         return desc;
     }
 
@@ -144,18 +144,10 @@ public class Device {
         String[] names = new String[maxCaps];
 
         if (maxCaps > 0) {
-            libvirt.virNodeDeviceListCaps(VDP, names, maxCaps);
-            processError();
+            int result = libvirt.virNodeDeviceListCaps(VDP, names, maxCaps);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
-    }
-
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 
     /**
@@ -165,7 +157,7 @@ public class Device {
      */
     public int reAttach() throws LibvirtException {
         int num = libvirt.virNodeDeviceReAttach(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, num);
         return num;
     }
 
@@ -177,7 +169,7 @@ public class Device {
      */
     public int reset() throws LibvirtException {
         int num = libvirt.virNodeDeviceReset(VDP);
-        processError();
+        ErrorHandler.processError(libvirt, num);
         return num;
     }
 }

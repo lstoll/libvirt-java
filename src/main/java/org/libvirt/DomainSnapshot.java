@@ -41,7 +41,7 @@ public class DomainSnapshot {
         int success = 0;
         if (VDSP != null) {
             success = libvirt.virDomainSnapshotDelete(VDSP, flags);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VDSP = null;
         }
 
@@ -64,7 +64,7 @@ public class DomainSnapshot {
         int success = 0;
         if (VDSP != null) {
             success = libvirt.virDomainSnapshotFree(VDSP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VDSP = null;
         }
 
@@ -73,7 +73,7 @@ public class DomainSnapshot {
 
     /**
      * Fetches an XML document describing attributes of the snapshot.
-     * 
+     *
      * @see <a
      *      href="http://www.libvirt.org/html/libvirt-libvirt.html#virDomainSnapshotGetXMLDesc">Libvirt
      *      Documentation</a>
@@ -81,15 +81,7 @@ public class DomainSnapshot {
      */
     public String getXMLDesc() throws LibvirtException {
         String returnValue = libvirt.virDomainSnapshotGetXMLDesc(VDSP, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
-    }
-
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 }

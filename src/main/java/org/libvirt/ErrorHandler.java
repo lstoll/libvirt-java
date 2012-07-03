@@ -13,13 +13,38 @@ import org.libvirt.jna.virError;
 public class ErrorHandler {
 
     /**
-     * Look for the latest error from libvirt not tied to a connection
+     * If the response was an error, retrieves the error and throws an exception
      *
-     * @param libvirt
-     *            the active connection
+     * @param libvirt The active connection
+     * @param ret The response from the libvirt call
      * @throws LibvirtException
      */
-    public static void processError(Libvirt libvirt) throws LibvirtException {
+    public static void processError(Libvirt libvirt, Object ret) throws LibvirtException {
+        if (ret == null) {
+            processError(libvirt);
+        }
+        else {
+            libvirt.virResetLastError();
+        }
+    }
+
+    /**
+     * If the response was an error, retrieves the error and throws an exception
+     *
+     * @param libvirt The active connection
+     * @param ret The response from the libvirt call
+     * @throws LibvirtException
+     */
+    public static void processError(Libvirt libvirt, int ret) throws LibvirtException {
+        if (ret == -1) {
+            processError(libvirt);
+        }
+        else {
+            libvirt.virResetLastError();
+        }
+    }
+
+    private static void processError(Libvirt libvirt) throws LibvirtException {
         virError vError = new virError();
         int errorCode = libvirt.virCopyLastError(vError);
         if (errorCode > 0) {

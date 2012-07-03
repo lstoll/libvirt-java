@@ -71,8 +71,8 @@ public class StorageVol {
      * @throws LibvirtException
      */
     public void delete(int flags) throws LibvirtException {
-        libvirt.virStorageVolDelete(VSVP, flags);
-        processError();
+        int result = libvirt.virStorageVolDelete(VSVP, flags);
+        ErrorHandler.processError(libvirt, result);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class StorageVol {
     public int free() throws LibvirtException {
         int success = 0;
         if (VSVP != null) {
-            libvirt.virStorageVolFree(VSVP);
-            processError();
+            int result = libvirt.virStorageVolFree(VSVP);
+            ErrorHandler.processError(libvirt, result);
             VSVP = null;
         }
         return success;
@@ -116,8 +116,8 @@ public class StorageVol {
      */
     public StorageVolInfo getInfo() throws LibvirtException {
         virStorageVolInfo vInfo = new virStorageVolInfo();
-        libvirt.virStorageVolGetInfo(VSVP, vInfo);
-        processError();
+        int result = libvirt.virStorageVolGetInfo(VSVP, vInfo);
+        ErrorHandler.processError(libvirt, result);
         return new StorageVolInfo(vInfo);
     }
 
@@ -130,7 +130,7 @@ public class StorageVol {
      */
     public String getKey() throws LibvirtException {
         String returnValue = libvirt.virStorageVolGetKey(VSVP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -142,7 +142,7 @@ public class StorageVol {
      */
     public String getName() throws LibvirtException {
         String returnValue = libvirt.virStorageVolGetName(VSVP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -157,7 +157,7 @@ public class StorageVol {
      */
     public String getPath() throws LibvirtException {
         String returnValue = libvirt.virStorageVolGetPath(VSVP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -171,17 +171,8 @@ public class StorageVol {
      */
     public String getXMLDesc(int flags) throws LibvirtException {
         String returnValue = libvirt.virStorageVolGetXMLDesc(VSVP, flags);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
-    }
-
-    /**
-     * Error handling logic which should be called after every libvirt call
-     * 
-     * @throws LibvirtException
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 
     /**
@@ -192,7 +183,7 @@ public class StorageVol {
      */
     public StoragePool storagePoolLookupByVolume() throws LibvirtException {
         StoragePoolPointer ptr = libvirt.virStoragePoolLookupByVolume(VSVP);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         return new StoragePool(virConnect, ptr);
     }
 
@@ -207,7 +198,7 @@ public class StorageVol {
      */
     public int wipe() throws LibvirtException {
         int returnValue = libvirt.virStorageVolWipe(VSVP, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 }

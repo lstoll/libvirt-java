@@ -30,9 +30,9 @@ public class Connect {
 
     // Load the native part
     static {
-        Libvirt.INSTANCE.virInitialize();
+        int result = Libvirt.INSTANCE.virInitialize();
         try {
-            ErrorHandler.processError(Libvirt.INSTANCE);
+            ErrorHandler.processError(Libvirt.INSTANCE, result);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,7 +126,6 @@ public class Connect {
      */
     public static void setErrorCallback(Libvirt.VirErrorCallback callback) throws LibvirtException {
         Libvirt.INSTANCE.virSetErrorFunc(null, callback);
-        ErrorHandler.processError(Libvirt.INSTANCE);
     }
 
     /**
@@ -170,8 +169,7 @@ public class Connect {
     public Connect(String uri) throws LibvirtException {
         VCP = libvirt.virConnectOpen(uri);
         // Check for an error
-        processError();
-        ErrorHandler.processError(Libvirt.INSTANCE);
+        ErrorHandler.processError(libvirt, VCP);
     }
 
     /**
@@ -191,8 +189,7 @@ public class Connect {
             VCP = libvirt.virConnectOpen(uri);
         }
         // Check for an error
-        processError();
-        ErrorHandler.processError(Libvirt.INSTANCE);
+        ErrorHandler.processError(libvirt, VCP);
     }
 
     /**
@@ -223,15 +220,13 @@ public class Connect {
         vAuth.credtype = mem.share(0);
 
         VCP = libvirt.virConnectOpenAuth(uri, vAuth, flags);
-        // Check for an error
-        processError();
-        ErrorHandler.processError(Libvirt.INSTANCE);
+        ErrorHandler.processError(Libvirt.INSTANCE, VCP);
     }
 
     /**
      * Computes the most feature-rich CPU which is compatible with all given
      * host CPUs.
-     * 
+     *
      * @param xmlCPUs
      *            array of XML descriptions of host CPUs
      * @return XML description of the computed CPU or NULL on error.
@@ -239,7 +234,7 @@ public class Connect {
      */
     public String baselineCPU(String[] xmlCPUs) throws LibvirtException {
         String returnValue = libvirt.virConnectBaselineCPU(VCP, xmlCPUs, xmlCPUs.length, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -254,7 +249,7 @@ public class Connect {
         int success = 0;
         if (VCP != null) {
             success = libvirt.virConnectClose(VCP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             // If leave an invalid pointer dangling around JVM crashes and burns
             // if someone tries to call a method on us
             // We rely on the underlying libvirt error handling to detect that
@@ -276,14 +271,14 @@ public class Connect {
      */
     public CPUCompareResult compareCPU(String xmlDesc) throws LibvirtException {
         int rawResult = libvirt.virConnectCompareCPU(VCP, xmlDesc, 0);
-        processError();
+        ErrorHandler.processError(libvirt, rawResult);
         return CPUCompareResult.get(rawResult);
     }
 
     /**
      * Create a new device on the VM host machine, for example, virtual HBAs
      * created using vport_create.
-     * 
+     *
      * @param xmlDesc
      *            the device to create
      * @return the Device object
@@ -292,7 +287,7 @@ public class Connect {
     public Device deviceCreateXML(String xmlDesc) throws LibvirtException {
         Device returnValue = null;
         DevicePointer ptr = libvirt.virNodeDeviceCreateXML(VCP, xmlDesc, 0);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Device(this, ptr);
         }
@@ -309,7 +304,7 @@ public class Connect {
      */
     public Device deviceLookupByName(String name) throws LibvirtException {
         DevicePointer ptr = libvirt.virNodeDeviceLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         return new Device(this, ptr);
     }
 
@@ -330,7 +325,7 @@ public class Connect {
     public Domain domainCreateLinux(String xmlDesc, int flags) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainCreateLinux(VCP, xmlDesc, flags);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -349,7 +344,7 @@ public class Connect {
     public Domain domainCreateXML(String xmlDesc, int flags) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainCreateXML(VCP, xmlDesc, flags);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -368,7 +363,7 @@ public class Connect {
     public Domain domainDefineXML(String xmlDesc) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainDefineXML(VCP, xmlDesc);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -388,7 +383,7 @@ public class Connect {
      */
     public int domainEventDeregisterAny(int callbackID) throws LibvirtException {
         int returnValue = libvirt.virConnectDomainEventDeregisterAny(VCP, callbackID);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -413,7 +408,7 @@ public class Connect {
             throws LibvirtException {
         DomainPointer ptr = domain == null ? null : domain.VDP;
         int returnValue = libvirt.virConnectDomainEventRegisterAny(VCP, ptr, eventId, cb, null, null);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -428,7 +423,7 @@ public class Connect {
     public Domain domainLookupByID(int id) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainLookupByID(VCP, id);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -446,7 +441,7 @@ public class Connect {
     public Domain domainLookupByName(String name) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -467,7 +462,7 @@ public class Connect {
         byte[] uuidBytes = Connect.createUUIDBytes(UUID);
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainLookupByUUID(VCP, uuidBytes);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -497,7 +492,7 @@ public class Connect {
     public Domain domainLookupByUUIDString(String UUID) throws LibvirtException {
         Domain returnValue = null;
         DomainPointer ptr = libvirt.virDomainLookupByUUIDString(VCP, UUID);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Domain(this, ptr);
         }
@@ -514,7 +509,7 @@ public class Connect {
      */
     public String domainXMLFromNative(String nativeFormat, String nativeConfig, int flags) throws LibvirtException {
         String returnValue = libvirt.virConnectDomainXMLFromNative(VCP, nativeFormat, nativeConfig, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -528,7 +523,7 @@ public class Connect {
      */
     public String domainXMLToNative(String nativeFormat, String domainXML, int flags) throws LibvirtException {
         String returnValue = libvirt.virConnectDomainXMLToNative(VCP, nativeFormat, domainXML, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -559,7 +554,7 @@ public class Connect {
      */
     public String findStoragePoolSources(String type, String srcSpecs, int flags) throws LibvirtException {
         String returnValue = libvirt.virConnectFindStoragePoolSources(VCP, type, srcSpecs, flags);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -573,7 +568,7 @@ public class Connect {
      */
     public String getCapabilities() throws LibvirtException {
         String returnValue = libvirt.virConnectGetCapabilities(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -583,7 +578,7 @@ public class Connect {
     public long getCellsFreeMemory(int startCells, int maxCells) throws LibvirtException {
         LongByReference returnValue = new LongByReference();
         libvirt.virNodeGetCellsFreeMemory(VCP, returnValue, startCells, maxCells);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue.getValue();
     }
 
@@ -593,7 +588,7 @@ public class Connect {
     public long getFreeMemory() throws LibvirtException {
         long returnValue = 0;
         returnValue = libvirt.virNodeGetFreeMemory(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue - 1); // 0 is an error for this case
         return returnValue;
     }
 
@@ -607,7 +602,7 @@ public class Connect {
      */
     public String getHostName() throws LibvirtException {
         String returnValue = libvirt.virConnectGetHostname(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
 
     }
@@ -624,8 +619,8 @@ public class Connect {
     public long getHypervisorVersion(String type) throws LibvirtException {
         LongByReference libVer = new LongByReference();
         LongByReference typeVer = new LongByReference();
-        libvirt.virGetVersion(libVer, type, typeVer);
-        processError();
+        int result = libvirt.virGetVersion(libVer, type, typeVer);
+        ErrorHandler.processError(libvirt, result);
         return libVer.getValue();
     }
 
@@ -639,8 +634,8 @@ public class Connect {
     public long getLibVirVersion() throws LibvirtException {
         LongByReference libVer = new LongByReference();
         LongByReference typeVer = new LongByReference();
-        libvirt.virGetVersion(libVer, null, typeVer);
-        processError();
+        int result = libvirt.virGetVersion(libVer, null, typeVer);
+        ErrorHandler.processError(libvirt, result);
         return libVer.getValue();
     }
 
@@ -655,7 +650,7 @@ public class Connect {
      */
     public int getMaxVcpus(String type) throws LibvirtException {
         int returnValue = libvirt.virConnectGetMaxVcpus(VCP, type);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -667,7 +662,7 @@ public class Connect {
      */
     public String getType() throws LibvirtException {
         String returnValue = libvirt.virConnectGetType(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -682,7 +677,7 @@ public class Connect {
      */
     public String getURI() throws LibvirtException {
         String returnValue = libvirt.virConnectGetURI(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -697,8 +692,8 @@ public class Connect {
      */
     public long getVersion() throws LibvirtException {
         LongByReference hvVer = new LongByReference();
-        libvirt.virConnectGetVersion(VCP, hvVer);
-        processError();
+        int result = libvirt.virConnectGetVersion(VCP, hvVer);
+        ErrorHandler.processError(libvirt, result);
         return hvVer.getValue();
     }
 
@@ -713,7 +708,7 @@ public class Connect {
     public Interface interfaceDefineXML(String xmlDesc) throws LibvirtException {
         Interface returnValue = null;
         InterfacePointer ptr = libvirt.virInterfaceDefineXML(VCP, xmlDesc, 0);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Interface(this, ptr);
         }
@@ -728,7 +723,7 @@ public class Connect {
     public Interface interfaceLookupByMACString(String mac) throws LibvirtException {
         Interface returnValue = null;
         InterfacePointer ptr = libvirt.virInterfaceLookupByMACString(VCP, mac);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Interface(this, ptr);
         }
@@ -743,7 +738,7 @@ public class Connect {
     public Interface interfaceLookupByName(String name) throws LibvirtException {
         Interface returnValue = null;
         InterfacePointer ptr = libvirt.virInterfaceLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Interface(this, ptr);
         }
@@ -761,7 +756,7 @@ public class Connect {
      */
     public int isEncrypted() throws LibvirtException {
         int returnValue = libvirt.virConnectIsEncrypted(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -776,7 +771,7 @@ public class Connect {
      */
     public int isSecure() throws LibvirtException {
         int returnValue = libvirt.virConnectIsSecure(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -791,8 +786,8 @@ public class Connect {
         int maxnames = numOfDefinedDomains();
         String[] names = new String[maxnames];
         if (maxnames > 0) {
-            libvirt.virConnectListDefinedDomains(VCP, names, maxnames);
-            processError();
+            int result = libvirt.virConnectListDefinedDomains(VCP, names, maxnames);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
     }
@@ -808,8 +803,8 @@ public class Connect {
         int num = numOfDefinedInterfaces();
         String[] returnValue = new String[num];
         if (num > 0) {
-            libvirt.virConnectListDefinedInterfaces(VCP, returnValue, num);
-            processError();
+            int result = libvirt.virConnectListDefinedInterfaces(VCP, returnValue, num);
+            ErrorHandler.processError(libvirt, result);
         }
         return returnValue;
     }
@@ -826,8 +821,8 @@ public class Connect {
         String[] names = new String[maxnames];
 
         if (maxnames > 0) {
-            libvirt.virConnectListDefinedNetworks(VCP, names, maxnames);
-            processError();
+            int result = libvirt.virConnectListDefinedNetworks(VCP, names, maxnames);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
     }
@@ -842,8 +837,8 @@ public class Connect {
     public String[] listDefinedStoragePools() throws LibvirtException {
         int num = numOfDefinedStoragePools();
         String[] returnValue = new String[num];
-        libvirt.virConnectListDefinedStoragePools(VCP, returnValue, num);
-        processError();
+        int result = libvirt.virConnectListDefinedStoragePools(VCP, returnValue, num);
+        ErrorHandler.processError(libvirt, result);
         return returnValue;
     }
 
@@ -858,8 +853,8 @@ public class Connect {
         String[] names = new String[maxDevices];
 
         if (maxDevices > 0) {
-            libvirt.virNodeListDevices(VCP, capabilityName, names, maxDevices, 0);
-            processError();
+            int result = libvirt.virNodeListDevices(VCP, capabilityName, names, maxDevices, 0);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
     }
@@ -875,8 +870,8 @@ public class Connect {
         int[] ids = new int[maxids];
 
         if (maxids > 0) {
-            libvirt.virConnectListDomains(VCP, ids, maxids);
-            processError();
+            int result = libvirt.virConnectListDomains(VCP, ids, maxids);
+            ErrorHandler.processError(libvirt, result);
         }
         return ids;
     }
@@ -892,8 +887,8 @@ public class Connect {
         int num = numOfInterfaces();
         String[] returnValue = new String[num];
         if (num > 0) {
-            libvirt.virConnectListInterfaces(VCP, returnValue, num);
-            processError();
+            int result = libvirt.virConnectListInterfaces(VCP, returnValue, num);
+            ErrorHandler.processError(libvirt, result);
         }
         return returnValue;
     }
@@ -908,8 +903,8 @@ public class Connect {
         int maxnames = numOfNetworkFilters();
         String[] names = new String[maxnames];
         if (maxnames > 0) {
-            libvirt.virConnectListNWFilters(VCP, names, maxnames);
-            processError();
+            int result = libvirt.virConnectListNWFilters(VCP, names, maxnames);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
     }
@@ -926,8 +921,8 @@ public class Connect {
         String[] names = new String[maxnames];
 
         if (maxnames > 0) {
-            libvirt.virConnectListNetworks(VCP, names, maxnames);
-            processError();
+            int result = libvirt.virConnectListNetworks(VCP, names, maxnames);
+            ErrorHandler.processError(libvirt, result);
         }
         return names;
     }
@@ -941,8 +936,8 @@ public class Connect {
     public String[] listSecrets() throws LibvirtException {
         int num = numOfSecrets();
         String[] returnValue = new String[num];
-        libvirt.virConnectListSecrets(VCP, returnValue, num);
-        processError();
+        int result = libvirt.virConnectListSecrets(VCP, returnValue, num);
+        ErrorHandler.processError(libvirt, result);
         return returnValue;
     }
 
@@ -956,8 +951,8 @@ public class Connect {
     public String[] listStoragePools() throws LibvirtException {
         int num = numOfStoragePools();
         String[] returnValue = new String[num];
-        libvirt.virConnectListStoragePools(VCP, returnValue, num);
-        processError();
+        int result = libvirt.virConnectListStoragePools(VCP, returnValue, num);
+        ErrorHandler.processError(libvirt, result);
         return returnValue;
     }
 
@@ -976,7 +971,7 @@ public class Connect {
     public Network networkCreateXML(String xmlDesc) throws LibvirtException {
         Network returnValue = null;
         NetworkPointer ptr = libvirt.virNetworkCreateXML(VCP, xmlDesc);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Network(this, ptr);
         }
@@ -997,7 +992,7 @@ public class Connect {
     public Network networkDefineXML(String xmlDesc) throws LibvirtException {
         Network returnValue = null;
         NetworkPointer ptr = libvirt.virNetworkDefineXML(VCP, xmlDesc);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Network(this, ptr);
         }
@@ -1018,7 +1013,7 @@ public class Connect {
     public NetworkFilter networkFilterDefineXML(String xmlDesc) throws LibvirtException {
         NetworkFilter returnValue = null;
         NetworkFilterPointer ptr = libvirt.virNWFilterDefineXML(VCP, xmlDesc);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new NetworkFilter(this, ptr);
         }
@@ -1039,7 +1034,7 @@ public class Connect {
     public NetworkFilter networkFilterLookupByName(String name) throws LibvirtException {
         NetworkFilter returnValue = null;
         NetworkFilterPointer ptr = libvirt.virNWFilterLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new NetworkFilter(this, ptr);
         }
@@ -1060,7 +1055,7 @@ public class Connect {
         byte[] uuidBytes = Connect.createUUIDBytes(UUID);
         NetworkFilter returnValue = null;
         NetworkFilterPointer ptr = libvirt.virNWFilterLookupByUUID(VCP, uuidBytes);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new NetworkFilter(this, ptr);
         }
@@ -1090,7 +1085,7 @@ public class Connect {
     public NetworkFilter networkFilterLookupByUUIDString(String UUID) throws LibvirtException {
         NetworkFilter returnValue = null;
         NetworkFilterPointer ptr = libvirt.virNWFilterLookupByUUIDString(VCP, UUID);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new NetworkFilter(this, ptr);
         }
@@ -1108,7 +1103,7 @@ public class Connect {
     public Network networkLookupByName(String name) throws LibvirtException {
         Network returnValue = null;
         NetworkPointer ptr = libvirt.virNetworkLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Network(this, ptr);
         }
@@ -1131,7 +1126,7 @@ public class Connect {
         byte[] uuidBytes = Connect.createUUIDBytes(UUID);
         Network returnValue = null;
         NetworkPointer ptr = libvirt.virNetworkLookupByUUID(VCP, uuidBytes);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Network(this, ptr);
         }
@@ -1161,7 +1156,7 @@ public class Connect {
     public Network networkLookupByUUIDString(String UUID) throws LibvirtException {
         Network returnValue = null;
         NetworkPointer ptr = libvirt.virNetworkLookupByUUIDString(VCP, UUID);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Network(this, ptr);
         }
@@ -1177,8 +1172,8 @@ public class Connect {
      */
     public NodeInfo nodeInfo() throws LibvirtException {
         virNodeInfo vInfo = new virNodeInfo();
-        libvirt.virNodeGetInfo(VCP, vInfo);
-        processError();
+        int result = libvirt.virNodeGetInfo(VCP, vInfo);
+        ErrorHandler.processError(libvirt, result);
         return new NodeInfo(vInfo);
     }
 
@@ -1190,7 +1185,7 @@ public class Connect {
      */
     public int numOfDefinedDomains() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfDefinedDomains(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1202,7 +1197,7 @@ public class Connect {
      */
     public int numOfDefinedInterfaces() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfDefinedInterfaces(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1214,7 +1209,7 @@ public class Connect {
      */
     public int numOfDefinedNetworks() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfDefinedNetworks(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1226,7 +1221,7 @@ public class Connect {
      */
     public int numOfDefinedStoragePools() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfDefinedStoragePools(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1238,7 +1233,7 @@ public class Connect {
      */
     public int numOfDevices(String capabilityName) throws LibvirtException {
         int returnValue = libvirt.virNodeNumOfDevices(VCP, capabilityName, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1250,7 +1245,7 @@ public class Connect {
      */
     public int numOfDomains() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfDomains(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1262,7 +1257,7 @@ public class Connect {
      */
     public int numOfInterfaces() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfInterfaces(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1274,7 +1269,7 @@ public class Connect {
      */
     public int numOfNetworkFilters() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfNWFilters(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1286,7 +1281,7 @@ public class Connect {
      */
     public int numOfNetworks() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfNetworks(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1297,7 +1292,7 @@ public class Connect {
      */
     public int numOfSecrets() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfSecrets(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -1309,17 +1304,8 @@ public class Connect {
      */
     public int numOfStoragePools() throws LibvirtException {
         int returnValue = libvirt.virConnectNumOfStoragePools(VCP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
-    }
-
-    /**
-     * call the error handling logic. Should be called after every libvirt call
-     * 
-     * @throws LibvirtException
-     */
-    protected void processError() throws LibvirtException {
-        ErrorHandler.processError(libvirt);
     }
 
     /**
@@ -1330,8 +1316,8 @@ public class Connect {
      * @throws LibvirtException
      */
     public void restore(String from) throws LibvirtException {
-        libvirt.virDomainRestore(VCP, from);
-        processError();
+        int result = libvirt.virDomainRestore(VCP, from);
+        ErrorHandler.processError(libvirt, result);
     }
 
     /**
@@ -1349,7 +1335,7 @@ public class Connect {
     public Secret secretDefineXML(String xmlDesc) throws LibvirtException {
         Secret returnValue = null;
         SecretPointer ptr = libvirt.virSecretDefineXML(VCP, xmlDesc, 0);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Secret(this, ptr);
         }
@@ -1370,7 +1356,7 @@ public class Connect {
         byte[] uuidBytes = Connect.createUUIDBytes(UUID);
         Secret returnValue = null;
         SecretPointer ptr = libvirt.virSecretLookupByUUID(VCP, uuidBytes);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Secret(this, ptr);
         }
@@ -1400,7 +1386,7 @@ public class Connect {
     public Secret secretLookupByUUIDString(String UUID) throws LibvirtException {
         Secret returnValue = null;
         SecretPointer ptr = libvirt.virSecretLookupByUUIDString(VCP, UUID);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new Secret(this, ptr);
         }
@@ -1409,28 +1395,27 @@ public class Connect {
 
     public void setConnectionErrorCallback(Libvirt.VirErrorCallback callback) throws LibvirtException {
         libvirt.virConnSetErrorFunc(VCP, null, callback);
-        processError();
     }
 
     /**
      * change the amount of memory reserved to Domain0. Domain0 is the domain
      * where the application runs. This function may requires priviledged access
      * to the hypervisor.
-     * 
+     *
      * @param memory
      *            in kilobytes
      * @throws LibvirtException
      */
     public void setDom0Memory(long memory) throws LibvirtException {
-        libvirt.virDomainSetMemory(null, new NativeLong(memory));
-        processError();
+        int result = libvirt.virDomainSetMemory(null, new NativeLong(memory));
+        ErrorHandler.processError(libvirt, result);
     }
 
     /**
      * Create a new storage based on its XML description. The pool is not
      * persistent, so its definition will disappear when it is destroyed, or if
      * the host is restarted
-     * 
+     *
      * @param xmlDesc
      *            XML description for new pool
      * @param flags
@@ -1440,7 +1425,7 @@ public class Connect {
      */
     public StoragePool storagePoolCreateXML(String xmlDesc, int flags) throws LibvirtException {
         StoragePoolPointer ptr = libvirt.virStoragePoolCreateXML(VCP, xmlDesc, flags);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         return new StoragePool(this, ptr);
     }
 
@@ -1457,13 +1442,13 @@ public class Connect {
      */
     public StoragePool storagePoolDefineXML(String xml, int flags) throws LibvirtException {
         StoragePoolPointer ptr = libvirt.virStoragePoolDefineXML(VCP, xml, flags);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         return new StoragePool(this, ptr);
     }
 
     /**
      * Fetch a storage pool based on its unique name
-     * 
+     *
      * @param name
      *            name of pool to fetch
      * @return StoragePool object
@@ -1471,7 +1456,7 @@ public class Connect {
      */
     public StoragePool storagePoolLookupByName(String name) throws LibvirtException {
         StoragePoolPointer ptr = libvirt.virStoragePoolLookupByName(VCP, name);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         return new StoragePool(this, ptr);
     }
 
@@ -1489,7 +1474,7 @@ public class Connect {
         byte[] uuidBytes = Connect.createUUIDBytes(UUID);
         StoragePool returnValue = null;
         StoragePoolPointer ptr = libvirt.virStoragePoolLookupByUUID(VCP, uuidBytes);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new StoragePool(this, ptr);
         }
@@ -1519,7 +1504,7 @@ public class Connect {
     public StoragePool storagePoolLookupByUUIDString(String UUID) throws LibvirtException {
         StoragePool returnValue = null;
         StoragePoolPointer ptr = libvirt.virStoragePoolLookupByUUIDString(VCP, UUID);
-        processError();
+        ErrorHandler.processError(libvirt, ptr);
         if (ptr != null) {
             returnValue = new StoragePool(this, ptr);
         }
@@ -1535,7 +1520,7 @@ public class Connect {
      */
     public StorageVol storageVolLookupByKey(String key) throws LibvirtException {
         StorageVolPointer sPtr = libvirt.virStorageVolLookupByKey(VCP, key);
-        processError();
+        ErrorHandler.processError(libvirt, sPtr);
         return new StorageVol(this, sPtr);
     }
 
@@ -1548,7 +1533,7 @@ public class Connect {
      */
     public StorageVol storageVolLookupByPath(String path) throws LibvirtException {
         StorageVolPointer sPtr = libvirt.virStorageVolLookupByPath(VCP, path);
-        processError();
+        ErrorHandler.processError(libvirt, sPtr);
         return new StorageVol(this, sPtr);
     }
 
@@ -1562,7 +1547,7 @@ public class Connect {
      */
     public Stream streamNew(int flags) throws LibvirtException {
         StreamPointer sPtr = libvirt.virStreamNew(VCP, flags);
-        processError();
+        ErrorHandler.processError(libvirt, sPtr);
         return new Stream(this, sPtr);
     }
     

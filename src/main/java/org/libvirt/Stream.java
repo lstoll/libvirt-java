@@ -36,7 +36,7 @@ public class Stream {
      */
     public int abort() throws LibvirtException {
         int returnValue = libvirt.virStreamAbort(VSP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -56,7 +56,7 @@ public class Stream {
      */
     public int addCallback(int events, Libvirt.VirStreamEventCallback cb) throws LibvirtException {
         int returnValue = libvirt.virStreamEventAddCallback(VSP, events, cb, null, null);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -74,7 +74,7 @@ public class Stream {
      */
     public int finish() throws LibvirtException {
         int returnValue = libvirt.virStreamFinish(VSP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -89,19 +89,11 @@ public class Stream {
         int success = 0;
         if (VSP != null) {
             success = libvirt.virStreamFree(VSP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VSP = null;
         }
 
         return success;
-    }
-
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 
     /**
@@ -114,7 +106,7 @@ public class Stream {
      */
     public int receive(byte[] data) throws LibvirtException {
         int returnValue = libvirt.virStreamRecv(VSP, data, new NativeLong(data.length));
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -129,7 +121,7 @@ public class Stream {
      */
     public int receiveAll(Libvirt.VirStreamSinkFunc handler) throws LibvirtException {
         int returnValue = libvirt.virStreamRecvAll(VSP, handler, null);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -144,7 +136,7 @@ public class Stream {
      */
     public int removeCallback() throws LibvirtException {
         int returnValue = libvirt.virStreamEventRemoveCallback(VSP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -159,7 +151,7 @@ public class Stream {
      */
     public int send(String data) throws LibvirtException {
         int returnValue = libvirt.virStreamSend(VSP, data, new NativeLong(data.length()));
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -176,7 +168,7 @@ public class Stream {
      */
     public int sendAll(Libvirt.VirStreamSourceFunc handler) throws LibvirtException {
         int returnValue = libvirt.virStreamSendAll(VSP, handler, null);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -193,7 +185,7 @@ public class Stream {
      */
     public int updateCallback(int events) throws LibvirtException {
         int returnValue = libvirt.virStreamEventUpdateCallback(VSP, events);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 }

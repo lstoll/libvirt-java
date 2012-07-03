@@ -51,7 +51,7 @@ public class Interface {
      */
     public int create() throws LibvirtException {
         int returnValue = libvirt.virInterfaceCreate(VIP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -63,7 +63,7 @@ public class Interface {
      */
     public int destroy() throws LibvirtException {
         int returnValue = libvirt.virInterfaceDestroy(VIP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -83,7 +83,7 @@ public class Interface {
         int success = 0;
         if (VIP != null) {
             success = libvirt.virInterfaceFree(VIP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VIP = null;
         }
 
@@ -97,7 +97,6 @@ public class Interface {
      */
     public String getMACString() throws LibvirtException {
         String name = libvirt.virInterfaceGetMACString(VIP);
-        processError();
         return name;
     }
 
@@ -108,7 +107,6 @@ public class Interface {
      */
     public String getName() throws LibvirtException {
         String name = libvirt.virInterfaceGetName(VIP);
-        processError();
         return name;
     }
 
@@ -119,7 +117,7 @@ public class Interface {
      */
     public String getXMLDescription(int flags) throws LibvirtException {
         String xml = libvirt.virInterfaceGetXMLDesc(VIP, flags);
-        processError();
+        ErrorHandler.processError(libvirt, xml);
         return xml;
     }
 
@@ -134,16 +132,8 @@ public class Interface {
      */
     public int isActive() throws LibvirtException {
         int returnValue = libvirt.virInterfaceIsActive(VIP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
-    }
-
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 
     /**
@@ -154,7 +144,7 @@ public class Interface {
      */
     public int undefine() throws LibvirtException {
         int returnValue = libvirt.virInterfaceUndefine(VIP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 }

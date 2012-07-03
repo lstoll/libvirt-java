@@ -47,7 +47,7 @@ public class Secret {
         int success = 0;
         if (VSP != null) {
             success = libvirt.virSecretFree(VSP);
-            processError();
+            ErrorHandler.processError(libvirt, success);
             VSP = null;
         }
 
@@ -64,7 +64,7 @@ public class Secret {
      */
     public String getUsageID() throws LibvirtException {
         String returnValue = libvirt.virSecretGetUsageID(VSP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -78,7 +78,7 @@ public class Secret {
     public int[] getUUID() throws LibvirtException {
         byte[] bytes = new byte[Libvirt.VIR_UUID_BUFLEN];
         int success = libvirt.virSecretGetUUID(VSP, bytes);
-        processError();
+        ErrorHandler.processError(libvirt, success);
         int[] returnValue = new int[0];
         if (success == 0) {
             returnValue = Connect.convertUUIDBytes(bytes);
@@ -96,7 +96,7 @@ public class Secret {
     public String getUUIDString() throws LibvirtException {
         byte[] bytes = new byte[Libvirt.VIR_UUID_STRING_BUFLEN];
         int success = libvirt.virSecretGetUUIDString(VSP, bytes);
-        processError();
+        ErrorHandler.processError(libvirt, success);
         String returnValue = null;
         if (success == 0) {
             returnValue = Native.toString(bytes);
@@ -111,7 +111,7 @@ public class Secret {
      */
     public String getValue() throws LibvirtException {
         String returnValue = libvirt.virSecretGetValue(VSP, new NativeLong(), 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -122,16 +122,8 @@ public class Secret {
      */
     public String getXMLDesc() throws LibvirtException {
         String returnValue = libvirt.virSecretGetXMLDesc(VSP, 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
-    }
-
-    /**
-     * Error handling logic to throw errors. Must be called after every libvirt
-     * call.
-     */
-    protected void processError() throws LibvirtException {
-        virConnect.processError();
     }
 
     /**
@@ -141,7 +133,7 @@ public class Secret {
      */
     public int setValue(String value) throws LibvirtException {
         int returnValue = libvirt.virSecretSetValue(VSP, value, new NativeLong(value.length()), 0);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 
@@ -152,7 +144,7 @@ public class Secret {
      */
     public int undefine() throws LibvirtException {
         int returnValue = libvirt.virSecretUndefine(VSP);
-        processError();
+        ErrorHandler.processError(libvirt, returnValue);
         return returnValue;
     }
 }
